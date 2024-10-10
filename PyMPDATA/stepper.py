@@ -159,11 +159,15 @@ def make_step_impl(
     ):
         time = clock()
         for step in range(n_steps):
+            corrective_flux = np.zeros_like(advector.field[3])
             if non_zero_mu_coeff:
                 advector_orig = advector
                 advector = vectmp_c
             for iteration in range(n_iters):
                 if iteration == 0:
+                    advector_filename = "./data/advector_" + str(step) + ".npy"
+                    with open(advector_filename, "wb") as f:
+                        np.save(advector_filename, advector.field[3])
                     if nonoscillatory:
                         nonoscillatory_psi_extrema(null_impl, psi_extrema, advectee)
                     if non_zero_mu_coeff:
@@ -213,10 +217,20 @@ def make_step_impl(
                         # note: in libmpdata++, the oscillatory advector from prev iter is used
                         nonoscillatory_correction(null_impl, advector_nonos, beta)
                         flux_subsequent(null_impl, flux, advectee, advector_nonos)
+                    corrective_flux = np.add(corrective_flux, flux.field[3].tolist())
+                # print(iteration, "flux.field[3]=", flux.field[3])
                 upwind(null_impl, advectee, flux, g_factor)
+                if iteration == 0:
+                    advectee_filename = "./data/advectee_" + str(step) + ".npy"
+                    with open(advectee_filename, "wb") as f:
+                        np.save(advectee_filename, advectee.field[1])
                 post_iter.call(flux.field, g_factor.field, step, iteration)
             if non_zero_mu_coeff:
                 advector = advector_orig
+            # save the corrective flux to a file
+            flux_filename = "./data/corrective_flux_" + str(step) + ".npy"
+            with open(flux_filename, "wb") as f:
+                np.save(flux_filename, corrective_flux)
             post_step.call(advectee.field[ARG_DATA], step)
         return (clock() - time) / n_steps if n_steps > 0 else np.nan
 
