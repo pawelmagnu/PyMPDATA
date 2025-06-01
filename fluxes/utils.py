@@ -145,13 +145,17 @@ def visualize_training(history):
     plt.show()
 
 
-def visualize_output(model, val_data):
+def visualize_output(model, val_data, scaling_factor=1, label="corrective flux"):
     X_test = val_data["input"]
     y_test = val_data["flux"]
     X_test, y_test = np.stack(X_test), np.stack(y_test)
     outputs = model.predict(X_test)
-    output = np.concatenate(outputs)
+    output = np.concatenate(outputs) * scaling_factor
     plt.plot(output)
     plt.plot(y_test)
     plt.legend(["output", "y_test"])
+    plt.xlabel("x/delta x")
+    plt.ylabel("corrective flux")
+    plt.grid()
+    plt.savefig(f"output_{label}.png")
     plt.show()
