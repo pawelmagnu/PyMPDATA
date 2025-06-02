@@ -151,6 +151,7 @@ def visualize_output(model, val_data, scaling_factor=1, label="corrective flux")
     X_test, y_test = np.stack(X_test), np.stack(y_test)
     outputs = model.predict(X_test)
     output = np.concatenate(outputs) * scaling_factor
+    plt.figure(figsize=(6, 6))
     plt.plot(output)
     plt.plot(y_test)
     plt.legend(["output", "y_test"])
